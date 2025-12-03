@@ -165,7 +165,7 @@ Tarayıcınızda `http://localhost:8080` adresini açın.
 
 
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Uçuş İşlemleri
 ```
@@ -200,7 +200,7 @@ GET    /api/havalimanlar/:havalimani_id
 GET    /api/havalimanlar/iata/:iata_kodu
 ```
 
-## 💡 Kullanım
+## Kullanım
 
 ### 1. Uçuş Arama
 - Ana sayfada kalkış ve varış havalimanını seçin
@@ -230,7 +230,7 @@ E-posta: ahmet@test.com
 
 **Not:** Test kullanıcılarının şifreleri `123456`'dır (bcrypt hash'lenmiş).
 
-## 🔧 Teknolojiler
+## Teknolojiler
 
 ### Backend
 - **Node.js** (v18+) - JavaScript runtime
