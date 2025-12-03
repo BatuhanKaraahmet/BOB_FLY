@@ -37,7 +37,7 @@ SELECT
     u.ucus_durumu,
     COUNT(b.bilet_id) as SatilanBilet
 FROM Ucus u
-JOIN Hava_Yolu_Sirketi hys ON u.firma_id = hys.firma_id
+JOIN Hava_Yolu_Sirketi hys ON uc.firma_id = hys.firma_id
 JOIN Havalimani k ON u.kalkis_havalimani_id = k.havalimani_id
 JOIN Havalimani v ON u.varis_havalimani_id = v.havalimani_id
 LEFT JOIN Bilet b ON u.ucus_id = b.ucus_id AND b.bilet_durumu = 'Aktif'
@@ -52,7 +52,7 @@ SELECT
     u.kalkis_tarihi_saati,
     u.temel_fiyat
 FROM Ucus u
-JOIN Hava_Yolu_Sirketi hys ON u.firma_id = hys.firma_id
+JOIN Hava_Yolu_Sirketi hys ON uc.firma_id = hys.firma_id
 JOIN Havalimani k ON u.kalkis_havalimani_id = k.havalimani_id
 JOIN Havalimani v ON u.varis_havalimani_id = v.havalimani_id
 WHERE k.sehir = 'İstanbul'
@@ -130,7 +130,7 @@ SELECT
     COUNT(b.bilet_id) as SatilanBilet,
     SUM(b.fiyat) as ToplamCiro
 FROM Hava_Yolu_Sirketi hys
-LEFT JOIN Ucus u ON hys.firma_id = u.firma_id
+LEFT JOIN Ucus u ON hys.firma_id = uc.firma_id
 LEFT JOIN Bilet b ON u.ucus_id = b.ucus_id AND b.bilet_durumu = 'Aktif'
 GROUP BY hys.firma_id
 ORDER BY ToplamCiro DESC;
@@ -158,7 +158,7 @@ SELECT
     uc.koltuk_sayisi,
     (uc.koltuk_sayisi - COUNT(b.bilet_id)) as BosKoltuk
 FROM Ucus u
-JOIN Hava_Yolu_Sirketi hys ON u.firma_id = hys.firma_id
+JOIN Hava_Yolu_Sirketi hys ON uc.firma_id = hys.firma_id
 JOIN Havalimani k ON u.kalkis_havalimani_id = k.havalimani_id
 JOIN Havalimani v ON u.varis_havalimani_id = v.havalimani_id
 JOIN Ucak uc ON u.ucak_id = uc.ucak_id
