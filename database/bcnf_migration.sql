@@ -13,7 +13,7 @@ SELECT
     'Ucus.firma_id ile Ucak.firma_id uyuşmuyor' AS mesaj
 FROM Ucus u
 JOIN Ucak uc ON u.ucak_id = uc.ucak_id
-WHERE u.firma_id != uc.firma_id;
+WHERE uc.firma_id != uc.firma_id;
 -- Eğer sonuç 0 değilse, veri tutarsızlığı var demektir
 
 -- Foreign key constraint'i kaldır
