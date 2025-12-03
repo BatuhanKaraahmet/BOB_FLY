@@ -7,7 +7,7 @@ BIL372 Veritabanı Sistemleri dersi için geliştirilmiş, Türkiye ve çevresin
 ### Proje Ekibi
 - **Berkhan Öztürk** - 211101005
 - **Osman Kaymakçı** - 211101064
-- **Batuhan Temel Karahmet** - 211101070
+- **Batuhan Temel Karahmet** - 221101070
 
 ### Proje Özellikleri
 
