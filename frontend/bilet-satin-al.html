@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilet Satın Al - BOBFLY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .seat {
+            width: 40px;
+            height: 40px;
+            margin: 3px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .seat.available {
+            background: #e5e7eb;
+            border: 2px solid #9ca3af;
+        }
+        .seat.available:hover {
+            background: #d1d5db;
+            transform: scale(1.1);
+        }
+        .seat.selected {
+            background: #7c3aed;
+            border: 2px solid #6d28d9;
+            color: white;
+        }
+        .seat.occupied {
+            background: #fca5a5;
+            border: 2px solid #ef4444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .step-indicator {
+            counter-reset: step;
+        }
+        .step-item {
+            position: relative;
+            padding-left: 40px;
+        }
+        .step-item::before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .step-item.active::before {
+            background: #7c3aed;
+            color: white;
+        }
+        .step-item.completed::before {
+            background: #10b981;
+            color: white;
+            content: '✓';
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="flex items-center space-x-2">
+                    <i class="fas fa-plane-departure text-3xl text-purple-600"></i>
+                    <span class="text-2xl font-bold text-gray-800">BOBFLY</span>
+                </a>
+                <div id="userMenu" class="flex items-center space-x-4">
+                    <button onclick="showLoginModal()" id="loginBtn" class="text-gray-600 hover:text-purple-600">
+                        <i class="fas fa-user"></i> Giriş Yap
+                    </button>
+                    <div id="userInfo" class="hidden flex items-center space-x-2 text-gray-700">
+                        <i class="fas fa-user-circle text-2xl"></i>
+                        <span id="userName"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Progress Steps -->
+    <div class="bg-white shadow-sm py-6">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center max-w-3xl mx-auto">
+                <div id="step1" class="step-item active flex-1">
+                    <span class="text-sm font-medium">Koltuk Seçimi</span>
+                </div>
+                <div id="step2" class="step-item flex-1">
+                    <span class="text-sm font-medium">Yolcu Bilgileri</span>
+                </div>
+                <div id="step3" class="step-item flex-1">
+                    <span class="text-sm font-medium">Ödeme</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Left Section - Steps -->
+            <div class="lg:w-2/3">
+                <!-- Step 1: Seat Selection -->
+                <div id="seatSelectionStep" class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                        <i class="fas fa-chair text-purple-600 mr-2"></i>Koltuk Seçimi
+                    </h2>
+                    
+                    <div id="loadingSeats" class="text-center py-12">
+                        <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                        <p class="mt-4 text-gray-600">Koltuklar yükleniyor...</p>
+                    </div>
+
+                    <div id="seatMapContainer" class="hidden">
+                        <!-- Legend -->
+                        <div class="flex justify-center gap-6 mb-6">
+                            <div class="flex items-center">
+                                <div class="seat available"></div>
+                                <span class="ml-2 text-sm">Müsait</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="seat selected"></div>
+                                <span class="ml-2 text-sm">Seçili</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="seat occupied"></div>
+                                <span class="ml-2 text-sm">Dolu</span>
+                            </div>
+                        </div>
+
+                        <!-- Seat Map -->
+                        <div class="overflow-x-auto">
+                            <div class="inline-block min-w-full">
+                                <!-- Cockpit -->
+                                <div class="text-center mb-4">
+                                    <div class="inline-block bg-purple-600 text-white px-6 py-2 rounded-t-full">
+                                        <i class="fas fa-plane-up"></i> Kokpit
+                                    </div>
+                                </div>
+
+                                <!-- Seats -->
+                                <div id="seatMap" class="flex flex-col items-center">
+                                    <!-- Seats will be dynamically generated -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 text-center">
+                            <button onclick="goToPassengerInfo()" id="nextToPassengerBtn" disabled class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-300">
+                                Devam Et <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Passenger Information -->
+                <div id="passengerInfoStep" class="hidden bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                        <i class="fas fa-user text-purple-600 mr-2"></i>Yolcu Bilgileri
+                    </h2>
+
+                    <form id="passengerForm" class="space-y-4">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Ad *</label>
+                                <input type="text" id="yolcuAd" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Soyad *</label>
+                                <input type="text" id="yolcuSoyad" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">TC Kimlik No *</label>
+                            <input type="text" id="tcKimlik" required maxlength="11" pattern="[0-9]{11}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600" placeholder="11 haneli TC Kimlik numaranız">
+                            <p class="text-sm text-gray-500 mt-1">11 haneli TC Kimlik numaranızı giriniz</p>
+                        </div>
+
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" onclick="backToSeatSelection()" class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition duration-300">
+                                <i class="fas fa-arrow-left mr-2"></i>Geri
+                            </button>
+                            <button type="submit" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-300">
+                                Devam Et <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 3: Payment -->
+                <div id="paymentStep" class="hidden bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                        <i class="fas fa-credit-card text-purple-600 mr-2"></i>Ödeme
+                    </h2>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                        <div class="flex">
+                            <i class="fas fa-info-circle text-yellow-400 mr-3 mt-1"></i>
+                            <p class="text-sm text-yellow-700">
+                                Bu bir demo uygulamadır. Gerçek ödeme işlemi yapılmamaktadır.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form id="paymentForm" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Kart Üzerindeki İsim</label>
+                            <input type="text" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Kart Numarası</label>
+                            <input type="text" required placeholder="1234 5678 9012 3456" maxlength="19" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Son Kullanma Tarihi</label>
+                                <input type="text" required placeholder="AA/YY" maxlength="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">CVV</label>
+                                <input type="text" required placeholder="123" maxlength="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center mt-6">
+                            <input type="checkbox" id="agreementCheck" required class="form-checkbox text-purple-600 mr-2">
+                            <label for="agreementCheck" class="text-sm text-gray-700">
+                                Satış sözleşmesini ve mesafeli satış sözleşmesini okudum, kabul ediyorum.
+                            </label>
+                        </div>
+
+                        <div class="flex gap-4 mt-6">
+                            <button type="button" onclick="backToPassengerInfo()" class="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition duration-300">
+                                <i class="fas fa-arrow-left mr-2"></i>Geri
+                            </button>
+                            <button type="submit" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-300">
+                                <i class="fas fa-lock mr-2"></i>Ödemeyi Tamamla
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Success Step -->
+                <div id="successStep" class="hidden bg-white rounded-xl shadow-lg p-12 text-center">
+                    <div class="mb-6">
+                        <i class="fas fa-check-circle text-6xl text-green-500"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Ödeme Başarılı!</h2>
+                    <p class="text-gray-600 mb-6">Biletiniz başarıyla oluşturuldu. Bilgileriniz e-posta adresinize gönderildi.</p>
+                    <div class="bg-purple-50 rounded-lg p-6 mb-6">
+                        <p class="text-sm text-gray-600 mb-2">Bilet Numarası</p>
+                        <p id="biletNumarasi" class="text-2xl font-bold text-purple-600">#000000</p>
+                    </div>
+                    <div class="flex gap-4 justify-center">
+                        <a href="biletlerim.html" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-ticket-alt mr-2"></i>Biletlerimi Görüntüle
+                        </a>
+                        <a href="index.html" class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400">
+                            <i class="fas fa-home mr-2"></i>Anasayfaya Dön
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Section - Summary -->
+            <div class="lg:w-1/3">
+                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-4">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Rezervasyon Özeti</h3>
+                    
+                    <div id="flightSummary" class="space-y-4">
+                        <!-- Flight details will be populated here -->
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div id="selectedSeatInfo" class="hidden mb-4">
+                        <p class="text-sm text-gray-600">Seçilen Koltuk</p>
+                        <p class="text-lg font-bold text-purple-600" id="selectedSeatDisplay">-</p>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">Bilet Ücreti</span>
+                        <span id="ticketPrice" class="font-bold">₺0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">Hizmet Bedeli</span>
+                        <span class="text-gray-600">₺50.00</span>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold">Toplam</span>
+                        <span id="totalPrice" class="text-2xl font-bold text-purple-600">₺0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js?v=2"></script>
+    <script src="js/auth.js?v=2"></script>
+    <script src="js/bilet-satin-al.js?v=2"></script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uçuş Sonuçları - BOBFLY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .flight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="index.html" class="flex items-center space-x-2">
+                    <i class="fas fa-plane-departure text-3xl text-purple-600"></i>
+                    <span class="text-2xl font-bold text-gray-800">BOBFLY</span>
+                </a>
+                <div class="hidden md:flex space-x-6">
+                    <a href="index.html" class="text-gray-600 hover:text-purple-600">Anasayfa</a>
+                    <a href="biletlerim.html" class="text-gray-600 hover:text-purple-600">Biletlerim</a>
+                    <a href="yardim.html" class="text-gray-600 hover:text-purple-600">Yardım</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showLoginModal()" id="loginBtn" class="text-gray-600 hover:text-purple-600">
+                        <i class="fas fa-user"></i> Giriş Yap
+                    </button>
+                    <button onclick="showRegisterModal()" id="registerBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                        Kayıt Ol
+                    </button>
+                    <div id="userMenu" class="hidden relative">
+                        <button onclick="toggleUserDropdown()" class="flex items-center space-x-2 text-gray-700">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                            <span id="userName"></span>
+                        </button>
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2">
+                            <a href="biletlerim.html" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                <i class="fas fa-ticket-alt mr-2"></i> Biletlerim
+                            </a>
+                            <button onclick="logout()" class="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Çıkış Yap
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Summary -->
+    <div class="bg-purple-600 text-white py-6">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div id="searchSummary" class="text-lg">
+                    <i class="fas fa-search mr-2"></i>
+                    <span id="summaryText">Uçuşlar aranıyor...</span>
+                </div>
+                <a href="index.html" class="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100">
+                    <i class="fas fa-edit mr-2"></i>Aramayı Değiştir
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="container mx-auto px-6 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Filters Sidebar -->
+            <div class="lg:w-1/4">
+                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-4">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">
+                        <i class="fas fa-filter text-purple-600 mr-2"></i>Filtreler
+                    </h3>
+                    
+                    <!-- Sort -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-medium mb-2">Sıralama</label>
+                        <select id="sortBy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            <option value="price-asc">En Ucuz</option>
+                            <option value="price-desc">En Pahalı</option>
+                            <option value="time-asc">En Erken</option>
+                            <option value="time-desc">En Geç</option>
+                        </select>
+                    </div>
+
+                    <!-- Airline Filter -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-medium mb-2">Hava Yolu</label>
+                        <div id="airlineFilters" class="space-y-2">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Fiyat Aralığı</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="number" id="minPrice" placeholder="Min" class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg">
+                            <span>-</span>
+                            <input type="number" id="maxPrice" placeholder="Max" class="w-1/2 px-3 py-2 border border-gray-300 rounded-lg">
+                        </div>
+                        <button onclick="applyFilters()" class="w-full mt-4 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">
+                            Filtrele
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flights List -->
+            <div class="lg:w-3/4">
+                <div id="loadingSpinner" class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-purple-600"></i>
+                    <p class="mt-4 text-gray-600">Uçuşlar aranıyor...</p>
+                </div>
+
+                <div id="noResults" class="hidden">
+                    <!-- JavaScript tarafından dinamik olarak doldurulacak -->
+                </div>
+
+                <div id="flightsList" class="space-y-4">
+                    <!-- Flights will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 BOBFLY. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Giriş Yap</h2>
+                <button onclick="closeLoginModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2">E-posta</label>
+                    <input type="email" id="loginEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Şifre</label>
+                    <input type="password" id="loginPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                </div>
+                <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700">
+                    Giriş Yap
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Kayıt Ol</h2>
+                <button onclick="closeRegisterModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <form id="registerForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 mb-2">Ad</label>
+                        <input type="text" id="registerAd" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 mb-2">Soyad</label>
+                        <input type="text" id="registerSoyad" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">E-posta</label>
+                    <input type="email" id="registerEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Telefon</label>
+                    <input type="tel" id="registerTelefon" placeholder="05XX XXX XX XX" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">Şifre</label>
+                    <input type="password" id="registerPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                </div>
+                <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700">
+                    Kayıt Ol
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/config.js?v=5"></script>
+    <script src="js/auth.js?v=5"></script>
+    <script src="js/ucus-sonuclari.js?v=5"></script>
+</body>
+</html>
+
+
+
