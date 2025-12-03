@@ -34,6 +34,7 @@ BOBfly/
 │   │   ├── kullaniciRoutes.js # Kullanıcı API endpoints
 │   │   └── havalimanRoutes.js # Havalimanı API endpoints
 │   ├── package.json
+│   └── package-lock.json
 │   └── server.js              # Ana sunucu dosyası
 │
 ├── frontend/                   # Frontend (HTML/CSS/JS)
