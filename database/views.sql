@@ -23,7 +23,7 @@ SELECT
     uc.koltuk_sayisi,
     (SELECT COUNT(*) FROM Bilet WHERE ucus_id = u.ucus_id AND bilet_durumu = 'Aktif') as dolu_koltuk
 FROM Ucus u
-JOIN Hava_Yolu_Sirketi hys ON u.firma_id = hys.firma_id
+JOIN Hava_Yolu_Sirketi hys ON uc.firma_id = hys.firma_id
 JOIN Havalimani k ON u.kalkis_havalimani_id = k.havalimani_id
 JOIN Havalimani v ON u.varis_havalimani_id = v.havalimani_id
 JOIN Ucak uc ON u.ucak_id = uc.ucak_id
@@ -59,7 +59,7 @@ SELECT
     (uc.koltuk_sayisi - COUNT(b.bilet_id)) as bos_koltuk,
     ROUND((COUNT(b.bilet_id) / uc.koltuk_sayisi) * 100, 2) as doluluk_orani
 FROM Ucus u
-JOIN Hava_Yolu_Sirketi hys ON u.firma_id = hys.firma_id
+JOIN Hava_Yolu_Sirketi hys ON uc.firma_id = hys.firma_id
 JOIN Havalimani k ON u.kalkis_havalimani_id = k.havalimani_id
 JOIN Havalimani v ON u.varis_havalimani_id = v.havalimani_id
 JOIN Ucak uc ON u.ucak_id = uc.ucak_id
@@ -79,7 +79,7 @@ SELECT
     AVG(b.fiyat) as ortalama_bilet_fiyati,
     (SELECT COUNT(*) FROM Ucus WHERE firma_id = hys.firma_id AND ucus_durumu = 'İptal') as iptal_edilen_ucus
 FROM Hava_Yolu_Sirketi hys
-LEFT JOIN Ucus u ON hys.firma_id = u.firma_id
+LEFT JOIN Ucus u ON hys.firma_id = uc.firma_id
 LEFT JOIN Ucak uc ON hys.firma_id = uc.firma_id
 LEFT JOIN Bilet b ON u.ucus_id = b.ucus_id AND b.bilet_durumu = 'Aktif'
 GROUP BY hys.firma_id;
@@ -124,7 +124,7 @@ SELECT
     END as satin_alan
 FROM Bilet b
 JOIN Ucus u ON b.ucus_id = u.ucus_id
-JOIN Hava_Yolu_Sirketi hys ON u.firma_id = hys.firma_id
+JOIN Hava_Yolu_Sirketi hys ON uc.firma_id = hys.firma_id
 JOIN Havalimani h_kalkis ON u.kalkis_havalimani_id = h_kalkis.havalimani_id
 JOIN Havalimani h_varis ON u.varis_havalimani_id = h_varis.havalimani_id
 LEFT JOIN Kullanici kul ON b.kullanici_id = kul.kullanici_id;
